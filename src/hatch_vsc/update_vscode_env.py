@@ -139,9 +139,13 @@ def get_environment_mappings(config: Dict[str, Any]) -> Dict[str, str]:
         for script_cmd in scripts.values():
             if isinstance(script_cmd, str) and script_cmd.startswith("cd "):
                 # Extract directory from cd command
-                dir_path = script_cmd.split()[1]
-                if dir_path.startswith("$(echo"):
-                    dir_path = dir_path.split("|")[0].split()[-1].strip("'")
+                if "$(echo" in script_cmd:
+                    # Extract path from $(echo 'path') pattern
+                    start = script_cmd.find("'") + 1
+                    end = script_cmd.find("'", start)
+                    dir_path = script_cmd[start:end]
+                else:
+                    dir_path = script_cmd.split()[1]
                 mappings[f"{dir_path}/**/*"] = env_name
                 break
         

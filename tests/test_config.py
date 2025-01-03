@@ -1,4 +1,16 @@
-"""Tests for configuration handling."""
+"""Tests for configuration handling.
+
+Test Coverage Strategy:
+- We aim for meaningful test coverage rather than 100% line coverage
+- We test all main functionality paths and critical error cases
+- We accept not testing:
+  - Some error handling in infer_test_directory (lines 70-71)
+  - Some error handling in get_environment_mappings (lines 105, 130)
+  - The __main__ entry point (line 227)
+- These untested paths are either:
+  1. Simple error handling with default values
+  2. Entry points that don't contain business logic
+"""
 from unittest.mock import patch
 
 import pytest
@@ -69,7 +81,7 @@ def test_get_environment_mappings_cd_script_echo():
                 "envs": {
                     "test": {
                         "scripts": {
-                            "test": "cd $(echo 'custom/path') | pytest"
+                            "test": "cd $(echo 'custom/path') && pytest"
                         }
                     }
                 }
@@ -114,3 +126,32 @@ def test_infer_test_directory():
     # Test no test framework
     empty_config = {"dependencies": ["requests"]}
     assert infer_test_directory(empty_config) is None 
+
+
+def test_get_environment_mappings_invalid_script():
+    """Test environment mappings with invalid script command."""
+    config = {
+        "tool": {
+            "hatch": {
+                "envs": {
+                    "test": {
+                        "scripts": {
+                            "test": 123  # Non-string script command
+                        }
+                    }
+                }
+            }
+        }
+    }
+    mappings = get_environment_mappings(config)
+    # Should fall back to using environment name
+    assert mappings["test/**/*"] == "test"
+
+
+def test_infer_test_directory_invalid_script():
+    """Test test directory inference with invalid script."""
+    config = {
+        "dependencies": ["pytest"],
+        "scripts": {"test": 123}  # Non-string script command
+    }
+    assert infer_test_directory(config) == "tests"  # Should fall back to default 

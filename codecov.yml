@@ -1,0 +1,17 @@
+coverage:
+  status:
+    project:
+      default:
+        target: 95%    # overall project coverage
+        threshold: 1%  # allow 1% drop
+    patch:
+      default:
+        target: 90%    # coverage of new/modified code
+        threshold: 1%  # allow 1% drop
+
+comment:
+  layout: "reach, diff, flags, files"
+  behavior: default
+  require_changes: true  # only post if coverage changes
+  require_base: false
+  require_head: true 

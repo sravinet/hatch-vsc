@@ -1,5 +1,5 @@
 [build-system]
-requires = ["hatchling>=1.8.0"]
+requires = ["hatchling>=1.21.0", "hatch-vcs>=0.4.0"]
 build-backend = "hatchling.build"
 
 [project]
@@ -18,7 +18,8 @@ classifiers = [
   "Framework :: Hatch",
 ]
 dependencies = [
-  "hatchling>=1.8.0",
+  "hatchling>=1.21.0",
+  "hatch-vcs>=0.4.0",
   "tomli",
 ]
 dynamic = ["version"]
@@ -30,12 +31,12 @@ vscode = "hatch_vsc.hatch_hooks:hatch_register_environment_collector"
 source = "vcs"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/hatch_vsc"] 
+packages = ["src/hatch_vsc"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = ["test_*.py"]
-addopts = "-v --cov=src/hatch_vsc --cov-report=term-missing"
+addopts = "-v --cov=src/hatch_vsc --cov-report=term-missing --cov-report=xml"
 
 [project.optional-dependencies]
 test = [
@@ -49,6 +50,6 @@ dependencies = [
     "pytest>=7.0.0",
     "pytest-cov>=4.0.0",
     "pytest-mock>=3.10.0",
-    "hatch>=1.8.0"
+    "hatch>=1.9.0"
 ]
 features = ["test"] 
