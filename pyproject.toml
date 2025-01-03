@@ -1,0 +1,33 @@
+[build-system]
+requires = ["hatchling>=1.8.0"]
+build-backend = "hatchling.build"
+
+[project]
+name = "hatch-vsc"
+description = "Hatch plugin for VSCode Python environment integration"
+readme = "README.md"
+requires-python = ">=3.8"
+license = "MIT"
+keywords = ["hatch", "plugin", "vscode"]
+authors = [
+  { name = "Your Name", email = "your.email@example.com" },
+]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Programming Language :: Python",
+  "Framework :: Hatch",
+]
+dependencies = [
+  "hatchling>=1.8.0",
+  "tomli",
+]
+dynamic = ["version"]
+
+[project.entry-points.hatch]
+vscode = "hatch_vsc.hatch_hooks:hatch_register_environment_collector"
+
+[tool.hatch.version]
+path = "src/hatch_vsc/__init__.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/hatch_vsc"] 
