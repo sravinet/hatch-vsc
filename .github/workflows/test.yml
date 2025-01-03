@@ -31,18 +31,54 @@ jobs:
       
     - name: Run tests
       run: hatch run test:pytest
-      
+
+    - name: Generate coverage badge
+      if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.12'
+      run: |
+        COVERAGE=$(python -c "import xml.etree.ElementTree as ET; tree = ET.parse('coverage.xml'); root = tree.getroot(); print(root.attrib['line-rate'])")
+        PERCENTAGE=$(python -c "print(round(float('${COVERAGE}') * 100, 1))")
+        COLOR=$(python -c "coverage = float('${COVERAGE}'); print('red' if coverage < 0.6 else 'yellow' if coverage < 0.8 else 'green')")
+        echo "COVERAGE=${COVERAGE}" >> $GITHUB_ENV
+        echo "PERCENTAGE=${PERCENTAGE}" >> $GITHUB_ENV
+        echo "COLOR=${COLOR}" >> $GITHUB_ENV
+        
+        cat > coverage-badge.json << EOF
+        {
+          "schemaVersion": 1,
+          "label": "coverage",
+          "message": "${PERCENTAGE}%",
+          "color": "${COLOR}"
+        }
+        EOF
+
+    - name: Upload coverage badge
+      if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.12'
+      uses: actions/upload-artifact@v4
+      with:
+        name: coverage-badge
+        path: coverage-badge.json
+        if-no-files-found: error
+
+    - name: Deploy coverage badge
+      if: github.ref == 'refs/heads/main' && matrix.os == 'ubuntu-latest' && matrix.python-version == '3.12'
+      uses: JamesIves/github-pages-deploy-action@v4
+      with:
+        folder: .
+        target-folder: badges
+        clean: false
+
     - name: Upload coverage to Codecov
+      if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.12' && github.repository_owner == github.actor
       uses: codecov/codecov-action@v4
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
         file: ./coverage.xml
         flags: unittests
         name: codecov-umbrella
-        fail_ci_if_error: true
+        fail_ci_if_error: false
         
     - name: Upload coverage to DeepSource
-      if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.12'
+      if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.12' && github.repository_owner == github.actor
       env:
         DEEPSOURCE_DSN: ${{ secrets.DEEPSOURCE_DSN }}
       run: |
