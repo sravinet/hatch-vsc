@@ -195,3 +195,48 @@ def test_update_vscode_config_existing_settings(mock_env_path):
         assert settings["python.formatting.provider"] == "black"
         assert "python.defaultInterpreterPath" in settings
         assert "python.analysis.extraPaths" in settings 
+
+
+def test_main_success():
+    """Test successful main execution."""
+    config = {
+        "tool": {
+            "hatch": {
+                "envs": {
+                    "test": {
+                        "dependencies": ["pytest"],
+                        "scripts": {"test": "pytest tests"}
+                    }
+                }
+            }
+        }
+    }
+    
+    mock_settings = "{}"
+    with patch("hatch_vsc.update_vscode_env.read_pyproject_toml", return_value=config), \
+         patch("pathlib.Path.exists", return_value=True), \
+         patch("pathlib.Path.mkdir"), \
+         patch("hatch_vsc.update_vscode_env.get_hatch_env_path", return_value=Path("/mock/env")), \
+         patch("builtins.open", mock_open(read_data=mock_settings)), \
+         patch("json.dump"), \
+         patch("builtins.print") as mock_print:
+        from hatch_vsc.update_vscode_env import main
+        main()
+        
+        # Verify output
+        mock_print.assert_any_call("Updating VSCode configuration with Hatch environments...")
+        mock_print.assert_any_call("\nEnvironment mappings (in order of precedence):")
+        mock_print.assert_any_call("\n✨ Updated VSCode configuration")
+
+
+def test_main_error():
+    """Test main execution with error."""
+    with patch("hatch_vsc.update_vscode_env.read_pyproject_toml", side_effect=Exception("Test error")), \
+         patch("sys.exit") as mock_exit, \
+         patch("builtins.print") as mock_print:
+        from hatch_vsc.update_vscode_env import main
+        main()
+        
+        # Verify error handling
+        mock_print.assert_any_call("⚠️  Error: Test error", file=sys.stderr)
+        mock_exit.assert_called_once_with(1) 

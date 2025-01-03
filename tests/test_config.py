@@ -1,31 +1,98 @@
+"""Tests for configuration handling."""
+from unittest.mock import patch
+
 import pytest
-from pathlib import Path
 
-from hatch_vsc.update_vscode_env import (
-    read_pyproject_toml,
-    get_environment_mappings,
-    infer_test_directory
-)
+from hatch_vsc.update_vscode_env import get_environment_mappings, infer_test_directory
 
 
-def test_read_pyproject_toml(mock_pyproject_toml):
-    """Test reading pyproject.toml file."""
-    config = read_pyproject_toml()
-    assert "tool" in config
-    assert "hatch" in config["tool"]
-    assert "envs" in config["tool"]["hatch"]
-
-
-def test_get_environment_mappings(mock_pyproject_toml):
-    """Test environment mapping generation."""
-    config = read_pyproject_toml()
+def test_get_environment_mappings():
+    """Test environment mappings extraction."""
+    config = {
+        "tool": {
+            "hatch": {
+                "envs": {
+                    "test": {
+                        "dependencies": ["pytest"],
+                        "scripts": {"test": "pytest tests"}
+                    }
+                }
+            }
+        }
+    }
     mappings = get_environment_mappings(config)
-    
-    # Basic mappings
-    assert "src/**/*" in mappings
     assert mappings["src/**/*"] == "default"
-    assert "tests/**/*" in mappings
     assert mappings["tests/**/*"] == "test"
+
+
+def test_get_environment_mappings_vsc_mapping():
+    """Test environment mappings with explicit VSCode mapping."""
+    config = {
+        "tool": {
+            "hatch": {
+                "envs": {
+                    "test": {
+                        "vsc-mapping": "custom/tests"
+                    }
+                }
+            }
+        }
+    }
+    mappings = get_environment_mappings(config)
+    assert mappings["custom/tests/**/*"] == "test"
+
+
+def test_get_environment_mappings_cd_script():
+    """Test environment mappings with cd script."""
+    config = {
+        "tool": {
+            "hatch": {
+                "envs": {
+                    "test": {
+                        "scripts": {
+                            "test": "cd custom/path && pytest"
+                        }
+                    }
+                }
+            }
+        }
+    }
+    mappings = get_environment_mappings(config)
+    assert mappings["custom/path/**/*"] == "test"
+
+
+def test_get_environment_mappings_cd_script_echo():
+    """Test environment mappings with cd script using echo."""
+    config = {
+        "tool": {
+            "hatch": {
+                "envs": {
+                    "test": {
+                        "scripts": {
+                            "test": "cd $(echo 'custom/path') | pytest"
+                        }
+                    }
+                }
+            }
+        }
+    }
+    mappings = get_environment_mappings(config)
+    assert mappings["custom/path/**/*"] == "test"
+
+
+def test_get_environment_mappings_fallback():
+    """Test environment mappings fallback to env name."""
+    config = {
+        "tool": {
+            "hatch": {
+                "envs": {
+                    "custom": {}
+                }
+            }
+        }
+    }
+    mappings = get_environment_mappings(config)
+    assert mappings["custom/**/*"] == "custom"
 
 
 def test_infer_test_directory():

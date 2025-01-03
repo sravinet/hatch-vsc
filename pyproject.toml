@@ -27,7 +27,7 @@ dynamic = ["version"]
 vscode = "hatch_vsc.hatch_hooks:hatch_register_environment_collector"
 
 [tool.hatch.version]
-path = "src/hatch_vsc/__init__.py"
+source = "vcs"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/hatch_vsc"] 
