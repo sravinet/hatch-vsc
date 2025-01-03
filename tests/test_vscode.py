@@ -72,8 +72,40 @@ def test_get_macos_hatch_path_no_user(monkeypatch):
 
 def test_get_hatch_env_path(monkeypatch):
     """Test Hatch environment path detection."""
+    test_user = "testuser"
+    test_project = "test-project"
+    monkeypatch.setenv("USER", test_user)
+    
+    # Create mock paths
+    base_str = f"/Users/{test_user}/Library/Application Support/hatch/env/virtual"
+    project_str = f"{base_str}/{test_project}"
+    env_str = f"{project_str}/{test_project}"  # Default environment
+    
+    # Create real Path objects for testing
+    base_path = Path(base_str)
+    project_path = Path(project_str)
+    env_path = Path(env_str)
+    
+    def mock_exists(self):
+        return str(self) in {base_str, project_str}
+    
+    def mock_is_dir(self):
+        return str(self) == project_str
+    
+    def mock_iterdir(self):
+        if str(self) == project_str:
+            return [env_path]
+        return []
+    
+    def mock_cwd():
+        return Path(f"/some/path/{test_project}")
+    
     with patch("platform.system", return_value="Darwin"), \
-         patch("pathlib.Path.exists", return_value=True):
+         patch.object(Path, "exists", mock_exists), \
+         patch.object(Path, "is_dir", mock_is_dir), \
+         patch.object(Path, "iterdir", mock_iterdir), \
+         patch.object(Path, "cwd", staticmethod(mock_cwd)):
+        
         path = get_hatch_env_path()
         assert "hatch/env/virtual" in str(path)
 
