@@ -31,3 +31,24 @@ path = "src/hatch_vsc/__init__.py"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/hatch_vsc"] 
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+addopts = "-v --cov=src/hatch_vsc --cov-report=term-missing"
+
+[project.optional-dependencies]
+test = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    "pytest-mock>=3.10.0"
+]
+
+[tool.hatch.envs.test]
+dependencies = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    "pytest-mock>=3.10.0",
+    "hatch>=1.8.0"
+]
+features = ["test"] 

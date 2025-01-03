@@ -25,15 +25,14 @@ def get_macos_hatch_path() -> Path:
     project_name = Path.cwd().name
     project_dir = base_path / project_name
     
-    if not project_dir.exists():
-        return base_path  # Return base path if project dir doesn't exist yet
-        
     # Find the hash directory (should be the only subdirectory)
-    hash_dirs = [d for d in project_dir.iterdir() if d.is_dir()]
-    if hash_dirs:
-        return hash_dirs[0]  # Return the hash directory path
+    if project_dir.exists():
+        hash_dirs = [d for d in project_dir.iterdir() if d.is_dir()]
+        if hash_dirs:
+            return hash_dirs[0]  # Return the hash directory path
     
-    return base_path
+    # If no hash directory found, return project directory
+    return project_dir
 
 
 def get_hatch_env_path() -> Path:

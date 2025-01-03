@@ -1,14 +1,8 @@
-from hatchling.plugin import hookimpl
-
+"""Hatch hooks for VSCode integration."""
 from .plugin import VSCodeEnvironmentCollector
 
-@hookimpl
-def hatch_register_environment_collector():
-    """Register the VSCode environment collector plugin.
-    
-    Returns:
-        The environment collector class
-    """
-    print("🔌 VSCode environment collector plugin registered")
-    return VSCodeEnvironmentCollector 
+
+def hatch_register_environment_collector(app):
+    """Register the VSCode environment collector."""
+    app.collector_registry.register("vscode", VSCodeEnvironmentCollector) 
 

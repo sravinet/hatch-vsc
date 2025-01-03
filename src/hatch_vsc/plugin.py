@@ -1,25 +1,32 @@
-"""VSCode environment collector plugin for Hatch."""
-import sys
-from typing import Dict
+"""VSCode environment collector plugin."""
+from pathlib import Path
 
 from hatch.env.collectors.plugin.interface import EnvironmentCollectorInterface
 
-from . import update_vscode_env
+from .update_vscode_env import update_vscode_config
+
 
 class VSCodeEnvironmentCollector(EnvironmentCollectorInterface):
-    """Updates VSCode configuration when environments are created."""
+    """VSCode environment collector plugin."""
 
-    PLUGIN_NAME = 'vscode'
-    
-    def finalize_config(self, config: Dict[str, Dict]) -> None:
-        """Called after environment creation to update VSCode configuration.
+    PLUGIN_NAME = "vscode"
+    config_file = "python.env.json"
+
+    def __init__(self, root, config):
+        """Initialize the collector.
         
         Args:
-            config: The environment configuration dictionary
+            root: The root directory of the project
+            config: The project configuration
         """
-        try:
-            update_vscode_env.main()
-        except Exception as e:
-            print(f"⚠️  Warning: Failed to update VSCode configuration: {e}", file=sys.stderr)
+        super().__init__(root, config)
+
+    def collect(self, app):
+        """Collect environment information and update VSCode configuration.
+        
+        Args:
+            app: The Hatch application instance
+        """
+        update_vscode_config({})
 
 
