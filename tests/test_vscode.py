@@ -33,45 +33,44 @@ def test_get_macos_hatch_path(monkeypatch):
     project_str = f"{base_str}/{test_project}"
     env_str = f"{project_str}/{test_project}"  # Default environment
     
-    class MockPath:
-        def __init__(self, path_str):
-            self.path_str = path_str
-        
-        def __str__(self):
-            return self.path_str
-        
-        def __truediv__(self, other):
-            if self.path_str == base_str and other == test_project:
-                return MockPath(project_str)
-            return MockPath(env_str)
-        
-        @property
-        def name(self):
-            return os.path.basename(self.path_str)
-        
-        def exists(self):
-            # Base path and project directory should exist
-            return self.path_str in [base_str, project_str]
-        
-        def is_dir(self):
-            # All paths in our test should be directories
-            return True
-        
-        def iterdir(self):
-            if self.path_str == project_str:
-                # Create a mock environment directory
-                mock_env = Mock()
-                mock_env.__str__ = lambda x: env_str
-                mock_env.name = test_project  # Default environment name
-                mock_env.is_dir = lambda: True
-                return [mock_env]
-            return []
-        
-        def cwd(self):
-            return MockPath(f"/test/path/{test_project}")
+    # Mock the path operations
+    mock_project_dir = Mock(spec=Path)
+    mock_project_dir.exists.return_value = True
+    mock_project_dir.is_dir.return_value = True
+    mock_project_dir.name = test_project
     
-    with patch("pathlib.Path", side_effect=MockPath), \
-         patch.object(Path, "cwd", return_value=MockPath(f"/test/path/{test_project}")):
+    mock_env = Mock(spec=Path)
+    mock_env.name = test_project
+    mock_env.is_dir.return_value = True
+    
+    def str_side_effect(self):
+        if self is mock_project_dir:
+            return project_str
+        if self is mock_env:
+            return env_str
+        return ""
+    
+    mock_project_dir.__str__ = str_side_effect
+    mock_env.__str__ = str_side_effect
+    mock_project_dir.iterdir.return_value = [mock_env]
+    
+    def mock_path_init(path_str):
+        if path_str == project_str:
+            return mock_project_dir
+        mock_path = Mock(spec=Path)
+        mock_path.exists.return_value = path_str == base_str
+        mock_path.name = os.path.basename(path_str)
+        mock_path.__str__ = lambda self: path_str
+        mock_path.__truediv__ = lambda self, x: Path(f"{path_str}/{x}")
+        return mock_path
+    
+    def mock_cwd():
+        mock_path = Mock(spec=Path)
+        mock_path.name = test_project
+        return mock_path
+    
+    with patch("pathlib.Path", side_effect=mock_path_init) as mock_path_class, \
+         patch.object(Path, "cwd", mock_cwd):
         path = get_macos_hatch_path()
         assert path.name == test_project  # Should be the project name for default env
         assert base_str in str(path)
