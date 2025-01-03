@@ -5,6 +5,10 @@
 
 A Hatch plugin for VSCode integration that automatically updates VSCode configuration when Hatch environments are created.
 
+## Warning
+
+Don't use it yet unless you want to contribute - it is Alpha code.
+
 ## Installation
 
 ```bash
