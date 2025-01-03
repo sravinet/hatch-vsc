@@ -1,0 +1,55 @@
+[build-system]
+requires = ["hatchling>=1.21.0", "hatch-vcs>=0.4.0"]
+build-backend = "hatchling.build"
+
+[project]
+name = "hatch-vsc"
+description = "Hatch plugin for VSCode Python environment integration"
+readme = "README.md"
+requires-python = ">=3.8"
+license = "MIT"
+keywords = ["hatch", "plugin", "vscode"]
+authors = [
+  { name = "Sylvan Ravinet", email = "sylvan@ravinet.com" },
+]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Programming Language :: Python",
+  "Framework :: Hatch",
+]
+dependencies = [
+  "hatchling>=1.21.0",
+  "hatch-vcs>=0.4.0",
+  "tomli",
+]
+dynamic = ["version"]
+
+[project.entry-points.hatch]
+vscode = "hatch_vsc.hatch_hooks:hatch_register_environment_collector"
+
+[tool.hatch.version]
+source = "vcs"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/hatch_vsc"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+addopts = "-v --cov=src/hatch_vsc --cov-report=term-missing --cov-report=xml"
+
+[project.optional-dependencies]
+test = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    "pytest-mock>=3.10.0"
+]
+
+[tool.hatch.envs.test]
+dependencies = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    "pytest-mock>=3.10.0",
+    "hatch>=1.9.0"
+]
+features = ["test"] 

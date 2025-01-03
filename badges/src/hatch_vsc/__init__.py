@@ -1,0 +1,1 @@
+"""Hatch plugin for VSCode integration."""
