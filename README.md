@@ -1,7 +1,7 @@
 # hatch-vsc
 
 [![Tests](../../actions/workflows/test.yml/badge.svg)](../../actions/workflows/test.yml)
-![Coverage](../../badges/coverage-badge.json)
+[![Coverage](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/sravinet/hatch-vsc/gh-pages/badges/coverage-badge.json)](../../actions/workflows/test.yml)
 
 A Hatch plugin for VSCode integration that automatically updates VSCode configuration when Hatch environments are created.
 
