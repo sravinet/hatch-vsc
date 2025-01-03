@@ -29,9 +29,9 @@ def test_get_macos_hatch_path(monkeypatch):
     monkeypatch.setenv("USER", test_user)
     
     # Create mock paths
-    base_str = f"/Users/{test_user}/Library/Application Support/hatch/env/virtual"
-    project_str = f"{base_str}/{test_project}"
-    env_str = f"{project_str}/{test_project}"  # Default environment
+    base_str = str(Path(f"/Users/{test_user}/Library/Application Support/hatch/env/virtual"))
+    project_str = str(Path(f"{base_str}/{test_project}"))
+    env_str = str(Path(f"{project_str}/{test_project}"))  # Default environment
     
     # Create real Path objects for testing
     base_path = Path(base_str)
@@ -59,7 +59,7 @@ def test_get_macos_hatch_path(monkeypatch):
         
         path = get_macos_hatch_path()
         assert path.name == test_project
-        assert base_str in str(path)
+        assert Path(base_str) in path.parents
 
 
 def test_get_macos_hatch_path_no_user(monkeypatch):
@@ -77,9 +77,9 @@ def test_get_hatch_env_path(monkeypatch):
     monkeypatch.setenv("USER", test_user)
     
     # Create mock paths
-    base_str = f"/Users/{test_user}/Library/Application Support/hatch/env/virtual"
-    project_str = f"{base_str}/{test_project}"
-    env_str = f"{project_str}/{test_project}"  # Default environment
+    base_str = str(Path(f"/Users/{test_user}/Library/Application Support/hatch/env/virtual"))
+    project_str = str(Path(f"{base_str}/{test_project}"))
+    env_str = str(Path(f"{project_str}/{test_project}"))  # Default environment
     
     # Create real Path objects for testing
     base_path = Path(base_str)
@@ -107,7 +107,9 @@ def test_get_hatch_env_path(monkeypatch):
          patch.object(Path, "cwd", staticmethod(mock_cwd)):
         
         path = get_hatch_env_path()
-        assert "hatch/env/virtual" in str(path)
+        # Check that all required path components are present in order
+        assert all(component in path.parts for component in ('hatch', 'env', 'virtual'))
+        assert list(component for component in path.parts if component in ('hatch', 'env', 'virtual')) == ['hatch', 'env', 'virtual']
 
 
 def test_get_hatch_env_path_unsupported():
@@ -122,12 +124,12 @@ def test_get_hatch_env_path_subprocess():
     """Test environment path detection using subprocess."""
     mock_result = Mock()
     mock_result.returncode = 0
-    mock_result.stdout = "/path/to/env\n"
+    mock_result.stdout = str(Path("/path/to/env")) + "\n"
     
     with patch("platform.system", return_value="Linux"), \
          patch("subprocess.run", return_value=mock_result):
         path = get_hatch_env_path()
-        assert str(path) == "/path/to"
+        assert path == Path("/path/to")
 
 
 def test_read_pyproject_toml_missing():
